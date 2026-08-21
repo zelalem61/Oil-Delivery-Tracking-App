@@ -9,12 +9,17 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const deployedOrigins = (process.env.ADMIN_WEB_URL ?? '')
     .split(',')
-    .map(origin => origin.trim())
+    .map(origin => origin.trim().replace(/\/$/, ''))
     .filter(Boolean);
   app.setGlobalPrefix('api');
   app.use(helmet());
   app.enableCors({
-    origin: [/^http:\/\/localhost:\d+$/, /^http:\/\/127\.0\.0\.1:\d+$/, ...deployedOrigins],
+    origin: [
+      /^http:\/\/localhost:\d+$/,
+      /^http:\/\/127\.0\.0\.1:\d+$/,
+      'https://oil-delivery-tracking-app-api.vercel.app',
+      ...deployedOrigins,
+    ],
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));

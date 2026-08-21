@@ -7,6 +7,8 @@
     "JWT_REFRESH_SECRET",
     "JWT_ACCESS_TTL_SECONDS",
     "API_PORT",
+    "PORT",
+    "ADMIN_WEB_URL",
     "NEXT_PUBLIC_API_URL",
     "EXPO_PUBLIC_API_URL"
   ],

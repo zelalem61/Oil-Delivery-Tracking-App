@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "FuelTrack Driver",
+    "slug": "fueltrack-driver",
+    "scheme": "fueltrack",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "FuelTrack uses your location during an active delivery to help operations monitor the trip.",
+          "locationAlwaysAndWhenInUsePermission": "FuelTrack uses your location only while an assigned delivery is active.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
+    ],
+    "ios": { "supportsTablet": false },
+    "android": { "package": "com.fueltrack.driver" }
+  }
+}

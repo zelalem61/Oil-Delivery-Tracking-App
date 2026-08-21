@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  permissions Json
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id               String    @id @default(uuid()) @db.Uuid
+  firstName        String
+  lastName         String
+  email            String    @unique
+  phone            String?
+  passwordHash     String
+  roleId           String    @db.Uuid
+  role             Role      @relation(fields: [roleId], references: [id])
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  refreshTokenHash String?
+  driver           Driver?
+  deliveries       Delivery[] @relation("DriverDeliveries")
+  statusChanges    DeliveryStatusHistory[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  @@index([roleId])
+  @@index([isActive])
+}
+
+model Driver {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @unique @db.Uuid
+  user          User     @relation(fields: [userId], references: [id])
+  driverCode    String   @unique
+  licenseNumber String   @unique
+  truckPlate    String
+  phone         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum DeliveryStatus {
+  CREATED
+  DISPATCHED
+  IN_TRANSIT
+  BORDER_CHECK
+  CLEARED_BORDER
+  ARRIVED
+  UNLOADING
+  AWAITING_DELIVERY_APPROVAL
+  DELIVERED
+  CANCELLED
+}
+
+model Delivery {
+  id               String          @id @default(uuid()) @db.Uuid
+  deliveryNumber   String          @unique
+  driverUserId     String          @db.Uuid
+  driver            User            @relation("DriverDeliveries", fields: [driverUserId], references: [id])
+  origin            String
+  destination       String
+  fuelProduct       String
+  quantityLiters    Decimal         @db.Decimal(12, 2)
+  truckPlate        String
+  status            DeliveryStatus  @default(CREATED)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  statusHistory     DeliveryStatusHistory[]
+  locations         DeliveryLocation[]
+  @@index([driverUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DeliveryLocation {
+  id          String   @id @default(uuid()) @db.Uuid
+  deliveryId  String   @db.Uuid
+  delivery    Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  latitude    Decimal  @db.Decimal(9, 6)
+  longitude   Decimal  @db.Decimal(9, 6)
+  accuracy    Float?
+  speed       Float?
+  heading     Float?
+  recordedAt  DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([deliveryId, recordedAt])
+}
+
+model DeliveryStatusHistory {
+  id             String          @id @default(uuid()) @db.Uuid
+  deliveryId     String          @db.Uuid
+  delivery       Delivery        @relation(fields: [deliveryId], references: [id])
+  previousStatus DeliveryStatus?
+  newStatus      DeliveryStatus
+  changedById    String          @db.Uuid
+  changedBy      User            @relation(fields: [changedById], references: [id])
+  reason         String?
+  createdAt      DateTime        @default(now())
+  @@index([deliveryId, createdAt])
+  @@index([changedById])
+}

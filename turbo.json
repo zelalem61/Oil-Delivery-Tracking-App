@@ -9,6 +9,8 @@
     "API_PORT",
     "PORT",
     "ADMIN_WEB_URL",
+    "ADMIN_EMAIL",
+    "ADMIN_PASSWORD",
     "NEXT_PUBLIC_API_URL",
     "EXPO_PUBLIC_API_URL"
   ],

@@ -3,6 +3,7 @@
     "name": "FuelTrack Driver",
     "slug": "fueltrack-driver",
     "scheme": "fueltrack",
+    "icon": "./assets/fueltrack-icon.png",
     "plugins": [
       "expo-router",
       [
@@ -20,6 +21,10 @@
     },
     "android": {
       "package": "com.fueltrack.driver",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/fueltrack-icon.png",
+        "backgroundColor": "#064E3B"
+      },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",

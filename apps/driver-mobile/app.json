@@ -15,7 +15,24 @@
         }
       ]
     ],
-    "ios": { "supportsTablet": false },
-    "android": { "package": "com.fueltrack.driver" }
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.fueltrack.driver",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1cbb7b60-c603-43dd-a6f0-17fe94daca8e"
+      }
+    }
   }
 }

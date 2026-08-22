@@ -15,21 +15,60 @@ export class DriversService {
       this.prisma.driver.findUnique({ where: { licenseNumber }, select: { id: true } }),
     ]);
     if (emailOwner) throw new ConflictException('A user with this email already exists');
-    if (licenseOwner) throw new ConflictException(`License number ${licenseNumber} is already in use`);
+    if (licenseOwner)
+      throw new ConflictException(`License number ${licenseNumber} is already in use`);
     try {
       const driver = await this.prisma.$transaction(async (tx) => {
-        const role = await tx.role.upsert({ where: { name: 'DRIVER' }, update: {}, create: { name: 'DRIVER', permissions: ['delivery:create', 'delivery:update-own'] } });
-        const user = await tx.user.create({ data: { firstName: input.firstName.trim(), lastName: input.lastName.trim(), email, phone: input.phone, passwordHash: await argon2.hash(input.password), roleId: role.id } });
-        return tx.driver.create({ data: { userId: user.id, driverCode: `SYS-${randomUUID()}`, licenseNumber, truckPlate: input.truckPlate.trim().toUpperCase(), phone: input.phone }, include: { user: { select: { id: true, firstName: true, lastName: true, email: true, isActive: true } } } });
+        const role = await tx.role.upsert({
+          where: { name: 'DRIVER' },
+          update: {},
+          create: { name: 'DRIVER', permissions: ['delivery:create', 'delivery:update-own'] },
+        });
+        const user = await tx.user.create({
+          data: {
+            firstName: input.firstName.trim(),
+            lastName: input.lastName.trim(),
+            email,
+            phone: input.phone,
+            passwordHash: await argon2.hash(input.password),
+            roleId: role.id,
+          },
+        });
+        return tx.driver.create({
+          data: {
+            userId: user.id,
+            driverCode: `SYS-${randomUUID()}`,
+            licenseNumber,
+            truckPlate: input.truckPlate.trim().toUpperCase(),
+            phone: input.phone,
+          },
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, email: true, isActive: true },
+            },
+          },
+        });
       });
       return { success: true, data: driver };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const field = Array.isArray(error.meta?.target) ? error.meta.target.join(', ') : 'account field';
+        const field = Array.isArray(error.meta?.target)
+          ? error.meta.target.join(', ')
+          : 'account field';
         throw new ConflictException(`A driver with this ${field} already exists`);
       }
       throw error;
     }
   }
-  async list() { const rows = await this.prisma.driver.findMany({ include: { user: { select: { id: true, firstName: true, lastName: true, email: true, isActive: true } } }, orderBy: { createdAt: 'desc' } }); return { success: true, data: rows }; }
+  async list() {
+    const rows = await this.prisma.driver.findMany({
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true, isActive: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return { success: true, data: rows };
+  }
 }

@@ -7,7 +7,13 @@ export type TripStatus =
   | 'AWAITING_DELIVERY_APPROVAL'
   | 'DELIVERED';
 
-export type DriverUser = { firstName: string; lastName: string; role: string; email: string; truckPlate?: string };
+export type DriverUser = {
+  firstName: string;
+  lastName: string;
+  role: string;
+  email: string;
+  truckPlate?: string;
+};
 export type Delivery = {
   id: string;
   deliveryNumber: string;

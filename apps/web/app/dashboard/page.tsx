@@ -18,10 +18,25 @@ type Delivery = {
   truckPlate: string;
   status: string;
   driver?: { firstName: string; lastName: string; email: string };
-  latestLocation?: { latitude: number; longitude: number; accuracy?: number | null; speed?: number | null; recordedAt: string } | null;
+  latestLocation?: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number | null;
+    speed?: number | null;
+    recordedAt: string;
+  } | null;
 };
 const api = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
-const deliveryStatuses = ['CREATED', 'DISPATCHED', 'IN_TRANSIT', 'ARRIVED', 'UNLOADING', 'AWAITING_DELIVERY_APPROVAL', 'DELIVERED', 'CANCELLED'];
+const deliveryStatuses = [
+  'CREATED',
+  'DISPATCHED',
+  'IN_TRANSIT',
+  'ARRIVED',
+  'UNLOADING',
+  'AWAITING_DELIVERY_APPROVAL',
+  'DELIVERED',
+  'CANCELLED',
+];
 export default function Dashboard() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
@@ -75,7 +90,9 @@ export default function Dashboard() {
   }, [refresh]);
   useEffect(() => {
     const interval = window.setInterval(() => {
-      void request('/deliveries').then(rows => setDeliveries(rows as Delivery[])).catch(() => undefined);
+      void request('/deliveries')
+        .then((rows) => setDeliveries(rows as Delivery[]))
+        .catch(() => undefined);
     }, 10_000);
     return () => window.clearInterval(interval);
   }, [request]);
@@ -99,9 +116,14 @@ export default function Dashboard() {
     }
   }
   async function approve(id: string) {
-    const delivery = deliveries.find(row => row.id === id);
+    const delivery = deliveries.find((row) => row.id === id);
     const reference = delivery?.deliveryNumber ?? 'this delivery';
-    if (!window.confirm(`Confirm marking ${reference} as DELIVERED? This is the final admin approval.`)) return;
+    if (
+      !window.confirm(
+        `Confirm marking ${reference} as DELIVERED? This is the final admin approval.`,
+      )
+    )
+      return;
     setError('');
     try {
       await request(`/deliveries/${id}/approve-delivered`, { method: 'POST' });
@@ -112,9 +134,13 @@ export default function Dashboard() {
     }
   }
   const normalizedNameFilter = driverNameFilter.trim().toLocaleLowerCase();
-  const filteredDeliveries = deliveries.filter(delivery => {
-    const driverName = `${delivery.driver?.firstName ?? ''} ${delivery.driver?.lastName ?? ''}`.toLocaleLowerCase();
-    return (!normalizedNameFilter || driverName.includes(normalizedNameFilter)) && (statusFilter === 'ALL' || delivery.status === statusFilter);
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    const driverName =
+      `${delivery.driver?.firstName ?? ''} ${delivery.driver?.lastName ?? ''}`.toLocaleLowerCase();
+    return (
+      (!normalizedNameFilter || driverName.includes(normalizedNameFilter)) &&
+      (statusFilter === 'ALL' || delivery.status === statusFilter)
+    );
   });
   return (
     <main className="admin-shell">
@@ -140,7 +166,12 @@ export default function Dashboard() {
         </p>
       )}
       {notice && <p className="banner success">{notice}</p>}
-      <DriverMap deliveries={deliveries.filter(delivery => !['DELIVERED', 'CANCELLED'].includes(delivery.status))} selectedDeliveryId={selectedDeliveryId} />
+      <DriverMap
+        deliveries={deliveries.filter(
+          (delivery) => !['DELIVERED', 'CANCELLED'].includes(delivery.status),
+        )}
+        selectedDeliveryId={selectedDeliveryId}
+      />
       <section className="admin-grid">
         <article className="panel">
           <div className="section-heading">
@@ -150,7 +181,9 @@ export default function Dashboard() {
             </div>
             <div className="heading-actions">
               <span>{drivers.length} drivers</span>
-              <button className="secondary" type="button" onClick={() => setShowDrivers(true)}>View drivers</button>
+              <button className="secondary" type="button" onClick={() => setShowDrivers(true)}>
+                View drivers
+              </button>
             </div>
           </div>
           <form className="admin-form" onSubmit={createDriver}>
@@ -200,13 +233,24 @@ export default function Dashboard() {
           <div className="delivery-filters">
             <label>
               Driver name
-              <input value={driverNameFilter} onChange={event => setDriverNameFilter(event.target.value)} placeholder="Search driver name" />
+              <input
+                value={driverNameFilter}
+                onChange={(event) => setDriverNameFilter(event.target.value)}
+                placeholder="Search driver name"
+              />
             </label>
             <label>
               Delivery status
-              <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+              >
                 <option value="ALL">All statuses</option>
-                {deliveryStatuses.map(status => <option value={status} key={status}>{status.replaceAll('_', ' ')}</option>)}
+                {deliveryStatuses.map((status) => (
+                  <option value={status} key={status}>
+                    {status.replaceAll('_', ' ')}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -233,13 +277,20 @@ export default function Dashboard() {
                   onClick={() => {
                     if (delivery.status !== 'IN_TRANSIT') return;
                     setSelectedDeliveryId(delivery.id);
-                    document.getElementById('driver-map-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document
+                      .getElementById('driver-map-panel')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
-                  onKeyDown={event => {
-                    if (delivery.status === 'IN_TRANSIT' && (event.key === 'Enter' || event.key === ' ')) {
+                  onKeyDown={(event) => {
+                    if (
+                      delivery.status === 'IN_TRANSIT' &&
+                      (event.key === 'Enter' || event.key === ' ')
+                    ) {
                       event.preventDefault();
                       setSelectedDeliveryId(delivery.id);
-                      document.getElementById('driver-map-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      document
+                        .getElementById('driver-map-panel')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                   }}
                 >
@@ -258,8 +309,7 @@ export default function Dashboard() {
                       {delivery.origin} → {delivery.destination}
                     </p>
                     <small>
-                      {delivery.deliveryNumber} · {delivery.truckPlate} ·{' '}
-                      {delivery.fuelProduct} ·{' '}
+                      {delivery.deliveryNumber} · {delivery.truckPlate} · {delivery.fuelProduct} ·{' '}
                       {Number(delivery.quantityLiters).toLocaleString()} L
                     </small>
                   </div>
@@ -268,7 +318,9 @@ export default function Dashboard() {
                   ) : delivery.status === 'DELIVERED' ? (
                     <span className="approved">✓ Admin approved</span>
                   ) : delivery.status === 'IN_TRANSIT' ? (
-                    <span className="map-link">{delivery.latestLocation ? 'View on map →' : 'Waiting for GPS'}</span>
+                    <span className="map-link">
+                      {delivery.latestLocation ? 'View on map →' : 'Waiting for GPS'}
+                    </span>
                   ) : (
                     <span className="waiting">Driver in progress</span>
                   )}
@@ -279,27 +331,60 @@ export default function Dashboard() {
         </article>
       </section>
       {showDrivers && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowDrivers(false)}>
-          <section className="driver-directory" role="dialog" aria-modal="true" aria-labelledby="driver-directory-title" onMouseDown={event => event.stopPropagation()}>
+        <div
+          className="modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setShowDrivers(false)}
+        >
+          <section
+            className="driver-directory"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="driver-directory-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             <div className="section-heading">
-              <div><p className="eyebrow">DRIVER DIRECTORY</p><h2 id="driver-directory-title">Created drivers</h2></div>
-              <button className="secondary" type="button" onClick={() => setShowDrivers(false)}>Close</button>
+              <div>
+                <p className="eyebrow">DRIVER DIRECTORY</p>
+                <h2 id="driver-directory-title">Created drivers</h2>
+              </div>
+              <button className="secondary" type="button" onClick={() => setShowDrivers(false)}>
+                Close
+              </button>
             </div>
             {drivers.length === 0 ? (
-              <div className="empty"><strong>No drivers created</strong><p>Create the first driver from the admin form.</p></div>
+              <div className="empty">
+                <strong>No drivers created</strong>
+                <p>Create the first driver from the admin form.</p>
+              </div>
             ) : (
               <div className="driver-directory-list">
-                {drivers.map(driver => (
+                {drivers.map((driver) => (
                   <article className="driver-directory-row" key={driver.id}>
                     <div className="driver-directory-name">
-                      <strong>{driver.user.firstName} {driver.user.lastName}</strong>
-                      <span className={`account-state ${driver.user.isActive ? 'active' : 'inactive'}`}>{driver.user.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                      <strong>
+                        {driver.user.firstName} {driver.user.lastName}
+                      </strong>
+                      <span
+                        className={`account-state ${driver.user.isActive ? 'active' : 'inactive'}`}
+                      >
+                        {driver.user.isActive ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
                       <small>{driver.user.email}</small>
                     </div>
                     <dl>
-                      <div><dt>Phone</dt><dd>{driver.phone}</dd></div>
-                      <div><dt>License</dt><dd>{driver.licenseNumber}</dd></div>
-                      <div><dt>Truck</dt><dd>{driver.truckPlate}</dd></div>
+                      <div>
+                        <dt>Phone</dt>
+                        <dd>{driver.phone}</dd>
+                      </div>
+                      <div>
+                        <dt>License</dt>
+                        <dd>{driver.licenseNumber}</dd>
+                      </div>
+                      <div>
+                        <dt>Truck</dt>
+                        <dd>{driver.truckPlate}</dd>
+                      </div>
                     </dl>
                   </article>
                 ))}

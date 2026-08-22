@@ -1,7 +1,81 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 export default function LoginPage() {
-  const [error, setError] = useState(''); const [loading, setLoading] = useState(false);
-  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(''); const data = new FormData(event.currentTarget); try { const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api'}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: data.get('email'), password: data.get('password') }) }); if (!response.ok) throw new Error('Check your email and password.'); const result = await response.json() as { data: { accessToken: string } }; sessionStorage.setItem('fueltrack_access_token', result.data.accessToken); window.location.assign('/dashboard'); } catch (e) { setError(e instanceof Error ? e.message : 'Login failed.'); } finally { setLoading(false); } }
-  return <main className="login-shell"><section className="brand"><div className="logo">FT</div><p className="eyebrow">DJIBOUTI — ETHIOPIA</p><h1>Every delivery.<br/>Clearly tracked.</h1><p>Secure operations access for FuelTrack teams.</p></section><section className="card"><div><p className="eyebrow">OPERATIONS PORTAL</p><h2>Welcome back</h2><p>Sign in with your assigned account.</p></div><form onSubmit={submit}><label>Email<input name="email" type="email" autoComplete="email" required placeholder="admin@fueltrack.local"/></label><label>Password<input name="password" type="password" autoComplete="current-password" required minLength={8} placeholder="Your password"/></label>{error && <p role="alert" className="error">{error}</p>}<button disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button></form><small>Authorized personnel only</small></section></main>;
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+    const data = new FormData(event.currentTarget);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api'}/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: data.get('email'), password: data.get('password') }),
+        },
+      );
+      if (!response.ok) throw new Error('Check your email and password.');
+      const result = (await response.json()) as { data: { accessToken: string } };
+      sessionStorage.setItem('fueltrack_access_token', result.data.accessToken);
+      window.location.assign('/dashboard');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <main className="login-shell">
+      <section className="brand">
+        <div className="logo">FT</div>
+        <p className="eyebrow">DJIBOUTI — ETHIOPIA</p>
+        <h1>
+          Every delivery.
+          <br />
+          Clearly tracked.
+        </h1>
+        <p>Secure operations access for FuelTrack teams.</p>
+      </section>
+      <section className="card">
+        <div>
+          <p className="eyebrow">OPERATIONS PORTAL</p>
+          <h2>Welcome back</h2>
+          <p>Sign in with your assigned account.</p>
+        </div>
+        <form onSubmit={submit}>
+          <label>
+            Email
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              placeholder="admin@fueltrack.local"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              minLength={8}
+              placeholder="Your password"
+            />
+          </label>
+          {error && (
+            <p role="alert" className="error">
+              {error}
+            </p>
+          )}
+          <button disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>
+        </form>
+        <small>Authorized personnel only</small>
+      </section>
+    </main>
+  );
 }

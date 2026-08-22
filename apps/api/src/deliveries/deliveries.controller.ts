@@ -4,7 +4,11 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { DeliveryStatus } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
-import { CreateDeliveryDto, CreateDeliveryLocationDto, UpdateDeliveryStatusDto } from './deliveries.dto';
+import {
+  CreateDeliveryDto,
+  CreateDeliveryLocationDto,
+  UpdateDeliveryStatusDto,
+} from './deliveries.dto';
 import { DeliveriesService } from './deliveries.service';
 
 type RequestUser = { user: { sub: string; role: string } };
@@ -17,21 +21,35 @@ export class DeliveriesController {
   constructor(private readonly service: DeliveriesService) {}
 
   @Get()
-  list(@Req() req: RequestUser) { return this.service.list(req.user); }
+  list(@Req() req: RequestUser) {
+    return this.service.list(req.user);
+  }
 
   @Post()
   @Roles('DRIVER')
-  create(@Req() req: RequestUser, @Body() body: CreateDeliveryDto) { return this.service.create(req.user.sub, body); }
+  create(@Req() req: RequestUser, @Body() body: CreateDeliveryDto) {
+    return this.service.create(req.user.sub, body);
+  }
 
   @Post(':id/locations')
   @Roles('DRIVER')
-  location(@Param('id') id: string, @Req() req: RequestUser, @Body() body: CreateDeliveryLocationDto) { return this.service.addLocation(id, req.user.sub, body); }
+  location(
+    @Param('id') id: string,
+    @Req() req: RequestUser,
+    @Body() body: CreateDeliveryLocationDto,
+  ) {
+    return this.service.addLocation(id, req.user.sub, body);
+  }
 
   @Patch(':id/status')
   @Roles('DRIVER')
-  status(@Param('id') id: string, @Req() req: RequestUser, @Body() body: UpdateDeliveryStatusDto) { return this.service.updateByDriver(id, req.user.sub, body.status as DeliveryStatus); }
+  status(@Param('id') id: string, @Req() req: RequestUser, @Body() body: UpdateDeliveryStatusDto) {
+    return this.service.updateByDriver(id, req.user.sub, body.status as DeliveryStatus);
+  }
 
   @Post(':id/approve-delivered')
   @Roles('ADMIN')
-  approve(@Param('id') id: string, @Req() req: RequestUser) { return this.service.approveDelivered(id, req.user.sub); }
+  approve(@Param('id') id: string, @Req() req: RequestUser) {
+    return this.service.approveDelivered(id, req.user.sub);
+  }
 }

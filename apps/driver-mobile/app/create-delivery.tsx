@@ -1,6 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import {
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useApp } from '../src/app-context';
 import { colors, common } from '../src/theme';
 import { TopNavButton } from '../src/top-nav-button';
@@ -48,28 +56,51 @@ export default function CreateDelivery() {
         <Text style={common.kicker}>NEW TRIP</Text>
         <Text style={common.title}>Create trip</Text>
         <Text style={s.copy}>This delivery is assigned to your authenticated driver account.</Text>
-        <TextInput style={s.input} value={origin} onChangeText={setOrigin} placeholder="Origin" />
-        <TextInput
-          style={s.input}
-          value={destination}
-          onChangeText={setDestination}
-          placeholder="Destination station"
-        />
-        <TextInput
-          style={s.input}
-          value={fuelProduct}
-          onChangeText={setFuelProduct}
-          placeholder="Fuel product"
-        />
-        <TextInput
-          style={s.input}
-          value={quantity}
-          onChangeText={setQuantity}
-          keyboardType="numeric"
-          placeholder="Quantity in liters"
-        />
-        <Text style={s.label}>ASSIGNED TRUCK</Text>
-        <Text style={s.readonly}>{user?.truckPlate ?? 'No truck assigned'}</Text>
+        <View style={s.field}>
+          <Text style={s.label}>ORIGIN</Text>
+          <TextInput
+            accessibilityLabel="Origin"
+            style={s.input}
+            value={origin}
+            onChangeText={setOrigin}
+            placeholder="Enter loading location"
+          />
+        </View>
+        <View style={s.field}>
+          <Text style={s.label}>DESTINATION</Text>
+          <TextInput
+            accessibilityLabel="Destination"
+            style={s.input}
+            value={destination}
+            onChangeText={setDestination}
+            placeholder="Enter destination station"
+          />
+        </View>
+        <View style={s.field}>
+          <Text style={s.label}>FUEL PRODUCT</Text>
+          <TextInput
+            accessibilityLabel="Fuel product"
+            style={s.input}
+            value={fuelProduct}
+            onChangeText={setFuelProduct}
+            placeholder="Enter fuel product"
+          />
+        </View>
+        <View style={s.field}>
+          <Text style={s.label}>QUANTITY (LITERS)</Text>
+          <TextInput
+            accessibilityLabel="Quantity in liters"
+            style={s.input}
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="numeric"
+            placeholder="Enter quantity"
+          />
+        </View>
+        <View style={s.field}>
+          <Text style={s.label}>ASSIGNED TRUCK</Text>
+          <Text style={s.readonly}>{user?.truckPlate ?? 'No truck assigned'}</Text>
+        </View>
         {error ? <Text style={s.error}>{error}</Text> : null}
         <Pressable style={[common.button, saving && s.disabled]} onPress={submit} disabled={saving}>
           <Text style={common.buttonText}>{saving ? 'Creating…' : 'Create and assign to me'}</Text>
@@ -80,6 +111,7 @@ export default function CreateDelivery() {
 }
 const s = StyleSheet.create({
   copy: { color: colors.muted, lineHeight: 21 },
+  field: { gap: 8 },
   input: {
     backgroundColor: '#fff',
     borderWidth: 1,
@@ -88,7 +120,7 @@ const s = StyleSheet.create({
     padding: 16,
     fontSize: 16,
   },
-  label: { color: colors.muted, fontSize: 12, fontWeight: '900', marginBottom: -10 },
+  label: { color: colors.muted, fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
   readonly: {
     backgroundColor: '#e9eee8',
     borderWidth: 1,

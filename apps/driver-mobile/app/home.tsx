@@ -10,19 +10,22 @@ import {
 } from 'react-native';
 import { useApp } from '../src/app-context';
 import { colors, common } from '../src/theme';
+import { TopNavButton } from '../src/top-nav-button';
 export default function Home() {
   const { user, delivery, queue, online, loadingDelivery, refreshDelivery } = useApp();
   return (
     <SafeAreaView style={common.screen}>
       <ScrollView contentContainerStyle={common.content}>
         <View style={s.header}>
-          <View>
+          <View style={s.headerCopy}>
             <Text style={common.kicker}>DRIVER HOME</Text>
             <Text style={common.title}>Good day, {user?.firstName ?? 'Driver'}</Text>
           </View>
-          <Pressable onPress={() => router.push('/profile')}>
-            <Text style={s.profile}>Profile</Text>
-          </Pressable>
+          <TopNavButton
+            icon="👤"
+            label="Open driver profile"
+            onPress={() => router.push('/profile')}
+          />
         </View>
         <View style={s.connection}>
           <View style={[s.dot, { backgroundColor: online ? colors.green : colors.amber }]} />
@@ -82,7 +85,7 @@ export default function Home() {
 }
 const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  profile: { color: colors.green, fontWeight: '800' },
+  headerCopy: { flex: 1, paddingRight: 12 },
   connection: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dot: { width: 9, height: 9, borderRadius: 5 },
   connectionText: { color: colors.muted, fontWeight: '600', flex: 1 },

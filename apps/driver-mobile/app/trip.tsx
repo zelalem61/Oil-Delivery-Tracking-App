@@ -5,6 +5,7 @@ import { Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } fr
 import { useApp } from '../src/app-context';
 import { actionLabel, type TripStatus } from '../src/domain';
 import { colors, common } from '../src/theme';
+import { TopNavButton } from '../src/top-nav-button';
 
 export default function Trip() {
   const { delivery, advanceTrip, enqueue, queue } = useApp();
@@ -94,9 +95,7 @@ export default function Trip() {
   return (
     <SafeAreaView style={common.screen}>
       <ScrollView contentContainerStyle={common.content}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={s.back}>← Driver home</Text>
-        </Pressable>
+        <TopNavButton icon="⌂" label="Go to driver home" onPress={() => router.replace('/home')} />
         <View>
           <Text style={common.kicker}>{delivery.deliveryNumber}</Text>
           <Text style={common.title}>Live trip</Text>
@@ -157,7 +156,6 @@ export default function Trip() {
   );
 }
 const s = StyleSheet.create({
-  back: { color: colors.green, fontWeight: '800' },
   statusCard: { backgroundColor: '#0b382b', padding: 22, borderRadius: 18 },
   status: { color: '#fff', fontWeight: '900', fontSize: 27, marginTop: 7 },
   route: { color: '#b8d4c9', marginTop: 10, lineHeight: 21 },

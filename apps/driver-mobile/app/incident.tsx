@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useApp } from '../src/app-context';
 import { colors, common } from '../src/theme';
+import { TopNavButton } from '../src/top-nav-button';
 const types = [
   'BREAKDOWN',
   'ACCIDENT',
@@ -53,9 +54,7 @@ export default function Incident() {
   return (
     <SafeAreaView style={common.screen}>
       <ScrollView contentContainerStyle={common.content}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={s.back}>← Live trip</Text>
-        </Pressable>
+        <TopNavButton icon="‹" label="Return to live trip" onPress={() => router.back()} />
         <Text style={common.kicker}>{delivery.deliveryNumber}</Text>
         <Text style={common.title}>Report incident</Text>
         <View>
@@ -106,7 +105,6 @@ export default function Incident() {
   );
 }
 const s = StyleSheet.create({
-  back: { color: colors.green, fontWeight: '800' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   chip: {
     paddingHorizontal: 12,

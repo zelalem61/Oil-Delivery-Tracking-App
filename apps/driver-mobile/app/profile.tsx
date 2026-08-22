@@ -1,15 +1,14 @@
 import { router } from 'expo-router';
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { useApp } from '../src/app-context';
-import { colors, common } from '../src/theme';
+import { common } from '../src/theme';
+import { TopNavButton } from '../src/top-nav-button';
 export default function Profile() {
   const { user, logout, queue } = useApp();
   return (
     <SafeAreaView style={common.screen}>
       <View style={common.content}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={s.back}>← Back</Text>
-        </Pressable>
+        <TopNavButton icon="⌂" label="Go to driver home" onPress={() => router.replace('/home')} />
         <Text style={common.kicker}>DRIVER PROFILE</Text>
         <Text style={common.title}>
           {user?.firstName} {user?.lastName}
@@ -36,6 +35,5 @@ export default function Profile() {
   );
 }
 const s = StyleSheet.create({
-  back: { color: colors.green, fontWeight: '800' },
   space: { marginTop: 20 },
 });

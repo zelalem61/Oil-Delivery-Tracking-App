@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { useApp } from '../src/app-context';
 import { colors, common } from '../src/theme';
+import { TopNavButton } from '../src/top-nav-button';
 export default function CreateDelivery() {
   const { user, createDelivery } = useApp();
   const [origin, setOrigin] = useState('Djibouti Depot');
@@ -43,9 +44,7 @@ export default function CreateDelivery() {
   return (
     <SafeAreaView style={common.screen}>
       <ScrollView contentContainerStyle={common.content}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={s.back}>← Driver home</Text>
-        </Pressable>
+        <TopNavButton icon="⌂" label="Go to driver home" onPress={() => router.replace('/home')} />
         <Text style={common.kicker}>NEW TRIP</Text>
         <Text style={common.title}>Create trip</Text>
         <Text style={s.copy}>This delivery is assigned to your authenticated driver account.</Text>
@@ -80,7 +79,6 @@ export default function CreateDelivery() {
   );
 }
 const s = StyleSheet.create({
-  back: { color: colors.green, fontWeight: '800' },
   copy: { color: colors.muted, lineHeight: 21 },
   input: {
     backgroundColor: '#fff',

@@ -71,4 +71,46 @@ export class DriversService {
     });
     return { success: true, data: rows };
   }
+  async directory(search?: string, page?: string) {
+    const pageSize = 20;
+    const parsedPage = Number.parseInt(page ?? '1', 10);
+    const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const query = search?.trim();
+    const where: Prisma.DriverWhereInput | undefined = query
+      ? {
+          OR: [
+            { user: { firstName: { contains: query, mode: 'insensitive' } } },
+            { user: { lastName: { contains: query, mode: 'insensitive' } } },
+            { user: { email: { contains: query, mode: 'insensitive' } } },
+            { phone: { contains: query, mode: 'insensitive' } },
+            { truckPlate: { contains: query, mode: 'insensitive' } },
+            { licenseNumber: { contains: query, mode: 'insensitive' } },
+          ],
+        }
+      : undefined;
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.driver.findMany({
+        where,
+        include: {
+          user: {
+            select: { id: true, firstName: true, lastName: true, email: true, isActive: true },
+          },
+        },
+        orderBy: [{ user: { firstName: 'asc' } }, { user: { lastName: 'asc' } }],
+        skip: (currentPage - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.driver.count({ where }),
+    ]);
+    return {
+      success: true,
+      data: {
+        items,
+        total,
+        page: currentPage,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+    };
+  }
 }

@@ -356,6 +356,101 @@ button:disabled {
   align-items: center;
   gap: 12px;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.directory-page {
+  max-width: 1280px;
+}
+.directory-panel {
+  margin-top: 30px;
+}
+.directory-search {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f5f8f6;
+}
+.directory-search button {
+  min-height: 48px;
+}
+.directory-loading {
+  padding: 44px 0;
+  color: #66746e;
+}
+.driver-table-wrap {
+  overflow-x: auto;
+  margin-top: 24px;
+  border: 1px solid #dfe7e3;
+  border-radius: 14px;
+}
+.driver-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  text-align: left;
+}
+.driver-table th,
+.driver-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e3e9e6;
+  vertical-align: middle;
+}
+.driver-table th {
+  background: #f5f8f6;
+  color: #66746e;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.driver-table tr:last-child td {
+  border-bottom: 0;
+}
+.driver-table tbody tr:hover {
+  background: #f8fcfa;
+}
+.driver-table strong,
+.driver-table small {
+  display: block;
+}
+.driver-table small {
+  margin-top: 5px;
+  color: #66746e;
+}
+.truck-plate {
+  color: #0d7a56;
+  font-weight: 900;
+}
+.directory-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  color: #66746e;
+  font-size: 14px;
+}
+.directory-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.directory-pagination button {
+  padding: 10px 14px;
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -445,5 +540,16 @@ button:disabled {
   }
   .driver-directory {
     padding: 20px;
+  }
+  .header-actions,
+  .directory-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .directory-search {
+    grid-template-columns: 1fr;
+  }
+  .directory-pagination > div {
+    justify-content: space-between;
   }
 }

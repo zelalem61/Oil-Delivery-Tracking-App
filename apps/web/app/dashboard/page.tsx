@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { DriverMap } from './driver-map';
 type Driver = {
   id: string;
@@ -47,7 +48,6 @@ export default function Dashboard() {
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [driverNameFilter, setDriverNameFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [showDrivers, setShowDrivers] = useState(false);
   const token = () => sessionStorage.getItem('fueltrack_access_token');
   const request = useCallback(async (path: string, options?: RequestInit) => {
     const response = await fetch(`${api}${path}`, {
@@ -181,9 +181,9 @@ export default function Dashboard() {
             </div>
             <div className="heading-actions">
               <span>{drivers.length} drivers</span>
-              <button className="secondary" type="button" onClick={() => setShowDrivers(true)}>
-                View drivers
-              </button>
+              <Link className="secondary" href="/drivers">
+                View all drivers
+              </Link>
             </div>
           </div>
           <form className="admin-form" onSubmit={createDriver}>
@@ -330,69 +330,6 @@ export default function Dashboard() {
           )}
         </article>
       </section>
-      {showDrivers && (
-        <div
-          className="modal-backdrop"
-          role="presentation"
-          onMouseDown={() => setShowDrivers(false)}
-        >
-          <section
-            className="driver-directory"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="driver-directory-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">DRIVER DIRECTORY</p>
-                <h2 id="driver-directory-title">Created drivers</h2>
-              </div>
-              <button className="secondary" type="button" onClick={() => setShowDrivers(false)}>
-                Close
-              </button>
-            </div>
-            {drivers.length === 0 ? (
-              <div className="empty">
-                <strong>No drivers created</strong>
-                <p>Create the first driver from the admin form.</p>
-              </div>
-            ) : (
-              <div className="driver-directory-list">
-                {drivers.map((driver) => (
-                  <article className="driver-directory-row" key={driver.id}>
-                    <div className="driver-directory-name">
-                      <strong>
-                        {driver.user.firstName} {driver.user.lastName}
-                      </strong>
-                      <span
-                        className={`account-state ${driver.user.isActive ? 'active' : 'inactive'}`}
-                      >
-                        {driver.user.isActive ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
-                      <small>{driver.user.email}</small>
-                    </div>
-                    <dl>
-                      <div>
-                        <dt>Phone</dt>
-                        <dd>{driver.phone}</dd>
-                      </div>
-                      <div>
-                        <dt>License</dt>
-                        <dd>{driver.licenseNumber}</dd>
-                      </div>
-                      <div>
-                        <dt>Truck</dt>
-                        <dd>{driver.truckPlate}</dd>
-                      </div>
-                    </dl>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
     </main>
   );
 }

@@ -11,3 +11,6 @@ coverage
 .pnpm-store
 .codex-tmp
 fueltrack-expo-qr.png
+
+# Uploaded garage attachments (stored on the API server)
+apps/api/uploads/

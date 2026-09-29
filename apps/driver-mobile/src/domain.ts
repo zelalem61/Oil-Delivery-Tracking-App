@@ -5,7 +5,8 @@ export type TripStatus =
   | 'ARRIVED'
   | 'UNLOADING'
   | 'AWAITING_DELIVERY_APPROVAL'
-  | 'DELIVERED';
+  | 'DELIVERED'
+  | 'CANCELLED';
 
 export type DriverUser = {
   firstName: string;
@@ -23,7 +24,28 @@ export type Delivery = {
   quantityLiters: number;
   truckPlate: string;
   status: TripStatus;
+  createdAt?: string;
+  updatedAt?: string;
 };
+export type MaintenanceStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type MaintenanceRecord = {
+  id: string;
+  truckPlate: string;
+  garageName: string;
+  garageLocation: string | null;
+  startDate: string;
+  endDate: string;
+  daysInGarage: number;
+  workDone: string;
+  costEtb: number;
+  status: MaintenanceStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  delivery: { id: string; deliveryNumber: string } | null;
+  attachments: { id: string; fileName: string; mimeType: string; sizeBytes: number }[];
+};
+
 export type OfflineEvent = {
   id: string;
   type: 'STATUS' | 'LOCATION' | 'INCIDENT';

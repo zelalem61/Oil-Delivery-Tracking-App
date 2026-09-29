@@ -29,7 +29,7 @@ type Leaflet = {
   };
   tileLayer(
     url: string,
-    options: { attribution: string; maxZoom: number },
+    options: { attribution: string; maxZoom: number; maxNativeZoom?: number },
   ): { addTo(map: unknown): void };
   marker(position: [number, number]): {
     addTo(map: unknown): { bindPopup(html: string): { openPopup(): void } };
@@ -41,6 +41,18 @@ declare global {
     L?: Leaflet;
   }
 }
+
+type BaseLayer = 'map' | 'satellite' | 'hybrid';
+const LAYER_KEY = 'fueltrack.map.layer';
+const esri = (service: string) =>
+  `https://server.arcgisonline.com/ArcGIS/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`;
+const esriAttribution =
+  'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community';
+const layerOptions: { value: BaseLayer; label: string }[] = [
+  { value: 'map', label: 'Map' },
+  { value: 'satellite', label: 'Satellite' },
+  { value: 'hybrid', label: 'Hybrid' },
+];
 
 const leafletCss = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const leafletJs = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
@@ -66,6 +78,25 @@ export function DriverMap({
   const previousSelection = useRef<string | null | undefined>(undefined);
   const [loadError, setLoadError] = useState(false);
   const [cityByArea, setCityByArea] = useState<Record<string, string>>({});
+  const [baseLayer, setBaseLayer] = useState<BaseLayer>('map');
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LAYER_KEY);
+      if (saved === 'map' || saved === 'satellite' || saved === 'hybrid') setBaseLayer(saved);
+    } catch {
+      // Storage can be unavailable; default to the street map.
+    }
+  }, []);
+
+  function chooseLayer(layer: BaseLayer) {
+    setBaseLayer(layer);
+    try {
+      localStorage.setItem(LAYER_KEY, layer);
+    } catch {
+      // Ignore storage failures.
+    }
+  }
   const positioned = deliveries.filter((delivery) => delivery.latestLocation);
   const selectedWithoutLocation = Boolean(
     selectedDeliveryId &&
@@ -155,12 +186,38 @@ export function DriverMap({
           : (preservedPoint ?? selectedPoint ?? points[0] ?? [9.03, 38.74]),
         zoom,
       );
-      leaflet
-        .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors',
-          maxZoom: 19,
-        })
-        .addTo(map);
+      if (baseLayer === 'map') {
+        leaflet
+          .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19,
+          })
+          .addTo(map);
+      } else {
+        leaflet
+          .tileLayer(esri('World_Imagery'), {
+            attribution: esriAttribution,
+            maxZoom: 19,
+            maxNativeZoom: 18,
+          })
+          .addTo(map);
+        if (baseLayer === 'hybrid') {
+          leaflet
+            .tileLayer(esri('Reference/World_Transportation'), {
+              attribution: '',
+              maxZoom: 19,
+              maxNativeZoom: 18,
+            })
+            .addTo(map);
+          leaflet
+            .tileLayer(esri('Reference/World_Boundaries_and_Places'), {
+              attribution: '',
+              maxZoom: 19,
+              maxNativeZoom: 18,
+            })
+            .addTo(map);
+        }
+      }
       positioned.forEach((delivery) => {
         const location = delivery.latestLocation!;
         const driver = delivery.driver
@@ -212,7 +269,7 @@ export function DriverMap({
         map.remove();
       }
     };
-  }, [deliveries, selectedDeliveryId, cityByArea]);
+  }, [deliveries, selectedDeliveryId, cityByArea, baseLayer]);
 
   return (
     <article className="panel map-panel" id="driver-map-panel">
@@ -221,7 +278,22 @@ export function DriverMap({
           <p className="eyebrow">LIVE GPS</p>
           <h2>Active driver locations</h2>
         </div>
-        <span>{positioned.length} reporting</span>
+        <div className="map-tools">
+          <div className="segmented segmented-sm" role="group" aria-label="Map style">
+            {layerOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={baseLayer === option.value ? 'active' : ''}
+                aria-pressed={baseLayer === option.value}
+                onClick={() => chooseLayer(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <span className="map-count">{positioned.length} reporting</span>
+        </div>
       </div>
       <div className="driver-map" ref={element} />
       {loadError ? (

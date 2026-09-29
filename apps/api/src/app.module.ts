@@ -5,6 +5,8 @@ import { HealthController } from './health.controller';
 import { PrismaService } from './prisma.service';
 import { DriversModule } from './drivers/drivers.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
+import { IncidentsModule } from './incidents/incidents.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { DeliveriesModule } from './deliveries/deliveries.module';
     AuthModule,
     DriversModule,
     DeliveriesModule,
+    IncidentsModule,
+    MaintenanceModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

@@ -59,6 +59,9 @@ export class DeliveriesService {
         driver: { select: { firstName: true, lastName: true, email: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
         locations: { orderBy: { recordedAt: 'desc' }, take: 1 },
+        _count: {
+          select: { incidents: { where: { status: { in: ['OPEN', 'ACKNOWLEDGED'] } } } },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -138,9 +141,10 @@ export class DeliveriesService {
     locations?: Array<Record<string, unknown>>;
     [key: string]: unknown;
   }) {
-    const { locations, ...delivery } = row;
+    const { locations, _count, ...delivery } = row;
     return {
       ...delivery,
+      openIncidents: (_count as { incidents?: number } | undefined)?.incidents ?? 0,
       quantityLiters: Number(row.quantityLiters),
       latestLocation: locations?.[0] ? this.mapLocation(locations[0]) : null,
     };

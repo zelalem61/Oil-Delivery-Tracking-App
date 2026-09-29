@@ -14,6 +14,13 @@
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FuelTrack uses your photos so you can attach garage receipts and repair pictures.",
+          "cameraPermission": "FuelTrack uses the camera so you can photograph garage receipts and repairs."
+        }
       ]
     ],
     "ios": {

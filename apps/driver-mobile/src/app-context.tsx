@@ -18,9 +18,19 @@ type CreateDeliveryInput = {
   fuelProduct: string;
   quantityLiters: number;
 };
+export type EnqueueResult =
+  | { status: 'sent' }
+  | { status: 'queued'; reason: 'offline' | 'server'; message?: string };
 type AppContextValue = {
   user: DriverUser | null;
   delivery: Delivery | null;
+  /** Most recent delivery the admin approved (for the "Last delivery" card). */
+  lastCompleted: Delivery | null;
+  /** Set when an approval is detected during this session; cleared by dismissApproval. */
+  justApproved: Delivery | null;
+  dismissApproval(): void;
+  /** Authenticated API call (JSON or FormData body); resolves with the response `data`. */
+  request<T = unknown>(path: string, options?: RequestInit): Promise<T>;
   queue: OfflineEvent[];
   online: boolean;
   loadingDelivery: boolean;
@@ -29,7 +39,7 @@ type AppContextValue = {
   refreshDelivery(): Promise<void>;
   createDelivery(input: CreateDeliveryInput): Promise<void>;
   advanceTrip(): Promise<void>;
-  enqueue(type: OfflineEvent['type'], payload: Record<string, unknown>): Promise<void>;
+  enqueue(type: OfflineEvent['type'], payload: Record<string, unknown>): Promise<EnqueueResult>;
 };
 const AppContext = createContext<AppContextValue | null>(null);
 const STATE_KEY = 'fueltrack.driver.connected.state';
@@ -40,10 +50,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const [lastCompleted, setLastCompleted] = useState<Delivery | null>(null);
+  const [justApproved, setJustApproved] = useState<Delivery | null>(null);
+  const deliveryRef = useRef<Delivery | null>(null);
+  useEffect(() => {
+    deliveryRef.current = delivery;
+  }, [delivery]);
   const [queue, setQueue] = useState<OfflineEvent[]>([]);
   const [online, setOnline] = useState(true);
   const [loadingDelivery, setLoadingDelivery] = useState(false);
   const flushing = useRef(false);
+  const [retryTick, setRetryTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setRetryTick((tick) => tick + 1), 30_000);
+    return () => clearInterval(timer);
+  }, []);
   useEffect(() => {
     void AsyncStorage.getItem(STATE_KEY).then((raw) => {
       if (!raw) return;
@@ -72,7 +93,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [queue]);
   useEffect(() => {
     if (!online || !token || flushing.current) return;
-    const pending = queue.filter((event) => event.type === 'LOCATION');
+    const pending = queue.filter((event) => event.type === 'LOCATION' || event.type === 'INCIDENT');
     if (!pending.length) return;
     flushing.current = true;
     void (async () => {
@@ -80,10 +101,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         for (const event of pending) {
           try {
-            await uploadLocation(event.payload);
+            await uploadEvent(event.type, event.payload);
             sent.push(event.id);
           } catch {
-            break;
+            // Keep it queued and try the next one; it is retried on the next flush.
           }
         }
       } finally {
@@ -91,7 +112,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         flushing.current = false;
       }
     })();
-  }, [online, token, queue]);
+  }, [online, token, queue, retryTick]);
+  // While the driver waits for admin approval, check the server every 15 seconds.
+  useEffect(() => {
+    if (delivery?.status !== 'AWAITING_DELIVERY_APPROVAL' || !online || !token) return;
+    const timer = setInterval(() => {
+      void loadDelivery().catch(() => undefined);
+    }, 15_000);
+    return () => clearInterval(timer);
+  }, [delivery?.status, online, token]);
+
   async function renew(sessionRefreshToken: string) {
     const response = await fetch(`${apiBaseUrl()}/auth/refresh`, {
       method: 'POST',
@@ -120,7 +150,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       fetch(`${apiBaseUrl()}${path}`, {
         ...options,
         headers: {
-          'content-type': 'application/json',
+          // Let fetch set the multipart boundary itself for file uploads.
+          ...(options?.body instanceof FormData ? {} : { 'content-type': 'application/json' }),
           authorization: `Bearer ${bearer}`,
           ...options?.headers,
         },
@@ -173,7 +204,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         accessToken,
         sessionRefreshToken,
       )) as Delivery[];
-      setDelivery(rows.find((row) => row.status !== 'DELIVERED') ?? null);
+      const current =
+        rows.find((row) => row.status !== 'DELIVERED' && row.status !== 'CANCELLED') ?? null;
+      const previous = deliveryRef.current;
+      if (previous && previous.id !== current?.id) {
+        const updated = rows.find((row) => row.id === previous.id);
+        if (updated?.status === 'DELIVERED') setJustApproved(updated);
+      }
+      setLastCompleted(rows.find((row) => row.status === 'DELIVERED') ?? null);
+      deliveryRef.current = current;
+      setDelivery(current);
     } finally {
       setLoadingDelivery(false);
     }
@@ -210,12 +250,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }),
     });
   }
-  async function enqueue(type: OfflineEvent['type'], payload: Record<string, unknown>) {
-    if (type === 'LOCATION' && online && token) {
+  async function uploadIncident(payload: Record<string, unknown>) {
+    const deliveryId = String(payload.deliveryId ?? '');
+    if (!deliveryId) throw new Error('Delivery is required for an incident report');
+    const { deliveryId: _deliveryId, ...incident } = payload;
+    await api(`/deliveries/${deliveryId}/incidents`, {
+      method: 'POST',
+      body: JSON.stringify(incident),
+    });
+  }
+  async function uploadEvent(type: OfflineEvent['type'], payload: Record<string, unknown>) {
+    if (type === 'LOCATION') return uploadLocation(payload);
+    if (type === 'INCIDENT') return uploadIncident(payload);
+  }
+  async function enqueue(
+    type: OfflineEvent['type'],
+    input: Record<string, unknown>,
+  ): Promise<EnqueueResult> {
+    // Incidents carry a stable client id so a retry after a lost connection is not duplicated.
+    const payload =
+      type === 'INCIDENT'
+        ? {
+            clientId: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+            reportedAt: new Date().toISOString(),
+            ...input,
+          }
+        : input;
+    let result: EnqueueResult = { status: 'queued', reason: 'offline' };
+    if ((type === 'LOCATION' || type === 'INCIDENT') && online && token) {
       try {
-        await uploadLocation(payload);
-        return;
-      } catch {}
+        await uploadEvent(type, payload);
+        return { status: 'sent' };
+      } catch (error) {
+        // fetch throws TypeError when the server cannot be reached; anything else is a server reply.
+        result =
+          error instanceof TypeError
+            ? { status: 'queued', reason: 'offline' }
+            : {
+                status: 'queued',
+                reason: 'server',
+                message: error instanceof Error ? error.message : undefined,
+              };
+      }
     }
     setQueue((current) => [
       ...current,
@@ -226,18 +302,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload,
       },
     ]);
+    return result;
   }
   function logout() {
     setToken(null);
     setRefreshToken(null);
     setUser(null);
     setDelivery(null);
+    setLastCompleted(null);
+    setJustApproved(null);
     void AsyncStorage.removeItem(SESSION_KEY);
   }
   const value = useMemo(
     () => ({
       user,
       delivery,
+      lastCompleted,
+      justApproved,
+      dismissApproval: () => setJustApproved(null),
+      request: <T,>(path: string, options?: RequestInit) => api(path, options) as Promise<T>,
       queue,
       online,
       loadingDelivery,
@@ -248,7 +331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       advanceTrip,
       enqueue,
     }),
-    [user, delivery, queue, online, loadingDelivery, token],
+    [user, delivery, lastCompleted, justApproved, queue, online, loadingDelivery, token],
   );
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

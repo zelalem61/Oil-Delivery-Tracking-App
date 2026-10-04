@@ -2,6 +2,7 @@
   "expo": {
     "name": "FuelTrack Driver",
     "slug": "fueltrack-driver",
+    "version": "1.0.0",
     "scheme": "fueltrack",
     "icon": "./assets/fueltrack-icon.png",
     "plugins": [
@@ -24,7 +25,8 @@
       ]
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fueltrack.driver"
     },
     "android": {
       "package": "com.fueltrack.driver",
@@ -45,6 +47,12 @@
       "eas": {
         "projectId": "1cbb7b60-c603-43dd-a6f0-17fe94daca8e"
       }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1cbb7b60-c603-43dd-a6f0-17fe94daca8e"
     }
   }
 }

@@ -122,7 +122,7 @@ const s = StyleSheet.create({
     paddingBottom: 64,
     overflow: 'hidden',
   },
-  gridOverlay: { ...StyleSheet.absoluteFillObject },
+  gridOverlay: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   gridLine: {
     position: 'absolute',
     left: 0,

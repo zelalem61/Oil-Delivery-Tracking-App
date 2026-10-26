@@ -8,6 +8,7 @@
     "start": "node dist/src/main.js",
     "lint": "tsc --noEmit",
     "test": "jest",
+    "test:e2e": "jest --rootDir test --testRegex \".*.e2e-spec.ts$\" --runInBand",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts"

@@ -3,19 +3,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { getToken, signOut, tokenEmail } from '../lib/api';
+import { getToken, homeFor, roleLabels, signOut, tokenEmail, tokenRole } from '../lib/api';
+
+const everyone = Object.keys(roleLabels);
+const adminOnly = ['ADMIN'];
 
 const nav = [
   {
     href: '/dashboard',
     label: 'Dashboard',
+    roles: adminOnly,
+    icon: <path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" />,
+  },
+  {
+    href: '/stations',
+    label: 'Stations',
+    roles: everyone,
     icon: (
-      <path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" />
+      <path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v7h1a2 2 0 0 1 2 2v3a1 1 0 0 0 2 0V9.4l-2.7-2.7 1.4-1.4 3.3 3.3V17a3 3 0 0 1-6 0v-3h-1v7H5Zm2-11h6V5H7v5Z" />
     ),
   },
   {
     href: '/maintenance',
     label: 'Maintenance',
+    roles: adminOnly,
     icon: (
       <path d="M22.7 19.3 13.6 10.2c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1 .1-1.4Z" />
     ),
@@ -23,6 +34,7 @@ const nav = [
   {
     href: '/drivers',
     label: 'Drivers',
+    roles: adminOnly,
     icon: (
       <path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 1a3 3 0 1 0-3-3 3 3 0 0 0 3 3Zm8 1c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4Zm-8 0c-.3 0-.7 0-1.1.1A4.6 4.6 0 0 1 9 17v3H2v-3c0-2.2 4.4-4 6-4Z" />
     ),
@@ -42,19 +54,27 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('');
 
   useEffect(() => {
     if (!getToken()) {
       location.assign('/');
       return;
     }
+    const current = tokenRole();
+    const page = nav.find((item) => pathname?.startsWith(item.href));
+    if (page && !page.roles.includes(current)) {
+      location.replace(homeFor(current));
+      return;
+    }
     setEmail(tokenEmail());
-  }, []);
+    setRole(current);
+  }, [pathname]);
 
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link href="/dashboard" className="brand-mark">
+        <Link href={homeFor(role)} className="brand-mark">
           <span className="brand-logo">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z" />
@@ -68,24 +88,26 @@ export function AdminShell({
           </span>
         </Link>
         <nav className="side-nav" aria-label="Main">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={pathname?.startsWith(item.href) ? 'active' : ''}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                {item.icon}
-              </svg>
-              {item.label}
-            </Link>
-          ))}
+          {nav
+            .filter((item) => role && item.roles.includes(role))
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={pathname?.startsWith(item.href) ? 'active' : ''}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  {item.icon}
+                </svg>
+                {item.label}
+              </Link>
+            ))}
         </nav>
         <div className="side-footer">
           <div className="side-user">
             <span className="side-avatar">{(email[0] ?? 'A').toUpperCase()}</span>
             <span>
-              <strong>Administrator</strong>
+              <strong>{roleLabels[role] ?? 'Signed in'}</strong>
               <small title={email}>{email || 'Signed in'}</small>
             </span>
           </div>

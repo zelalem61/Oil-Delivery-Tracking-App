@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUUID,
   Max,
   Min,
 } from 'class-validator';
@@ -15,6 +16,13 @@ export class CreateDeliveryDto {
   @ApiProperty() @IsString() @IsNotEmpty() destination!: string;
   @ApiProperty() @IsString() @IsNotEmpty() fuelProduct!: string;
   @ApiProperty() @IsNumber() @IsPositive() quantityLiters!: number;
+  @ApiProperty({
+    required: false,
+    description: 'Receiving station; its stock grows when the delivery is approved',
+  })
+  @IsOptional()
+  @IsUUID()
+  stationId?: string;
 }
 export const driverStatuses = [
   'DISPATCHED',

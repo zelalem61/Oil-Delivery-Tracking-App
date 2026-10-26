@@ -17,6 +17,8 @@ type CreateDeliveryInput = {
   destination: string;
   fuelProduct: string;
   quantityLiters: number;
+  /** Receiving station; its stock grows when the admin approves the delivery. */
+  stationId?: string;
 };
 export type EnqueueResult =
   | { status: 'sent' }

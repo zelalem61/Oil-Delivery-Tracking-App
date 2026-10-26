@@ -5,6 +5,12 @@ async function main() {
   const email = (process.env.ADMIN_EMAIL ?? 'admin@fueltrack.local').trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD ?? 'FuelTrack123!';
   if (password.length < 8) throw new Error('ADMIN_PASSWORD must contain at least 8 characters');
+  const staffRoles = {
+    OPERATIONS_MANAGER: ['station:read', 'sales:read'],
+    STATION_MANAGER: ['station:read-own', 'sales:submit-own'],
+  };
+  for (const [name, permissions] of Object.entries(staffRoles))
+    await prisma.role.upsert({ where: { name }, update: {}, create: { name, permissions } });
   const role = await prisma.role.upsert({
     where: { name: 'ADMIN' },
     update: { permissions: ['*'] },

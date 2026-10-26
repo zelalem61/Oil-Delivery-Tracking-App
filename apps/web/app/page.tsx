@@ -1,6 +1,6 @@
 'use client';
 import { useState, type FormEvent } from 'react';
-import { apiUrl, setToken } from './lib/api';
+import { apiUrl, homeFor, roleLabels, setToken, tokenRole } from './lib/api';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
@@ -20,8 +20,11 @@ export default function LoginPage() {
       });
       if (!response.ok) throw new Error('Check your email and password.');
       const result = (await response.json()) as { data: { accessToken: string } };
+      const role = tokenRole(result.data.accessToken);
+      if (!roleLabels[role])
+        throw new Error('Drivers sign in with the FuelTrack Driver mobile app.');
       setToken(result.data.accessToken);
-      window.location.assign('/dashboard');
+      window.location.assign(homeFor(role));
     } catch (cause) {
       setError(
         cause instanceof TypeError

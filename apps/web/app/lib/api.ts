@@ -19,17 +19,27 @@ export function signOut() {
   location.assign('/');
 }
 
-/** Reads the email claim from the JWT payload (display only, not verified). */
-export function tokenEmail() {
-  const token = getToken();
-  if (!token) return '';
+/** Reads the JWT payload (display and navigation only; the API enforces access). */
+function tokenClaims(token = getToken()): { email?: string; role?: string } {
+  if (!token) return {};
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/')));
-    return String(payload.email ?? '');
+    return JSON.parse(atob(token.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/')));
   } catch {
-    return '';
+    return {};
   }
 }
+
+export const tokenEmail = () => String(tokenClaims().email ?? '');
+export const tokenRole = (token?: string) => String(tokenClaims(token).role ?? '');
+
+export const roleLabels: Record<string, string> = {
+  ADMIN: 'Administrator',
+  OPERATIONS_MANAGER: 'Operations manager',
+  STATION_MANAGER: 'Station manager',
+};
+
+/** Where each role lands after signing in. */
+export const homeFor = (role: string) => (role === 'ADMIN' ? '/dashboard' : '/stations');
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();

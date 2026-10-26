@@ -35,11 +35,18 @@ model User {
   incidentsResolved   Incident[]              @relation("IncidentResolver")
   maintenanceRecords  MaintenanceRecord[]     @relation("MaintenanceDriver")
   maintenanceReviewed MaintenanceRecord[]     @relation("MaintenanceReviewer")
+  /**
+   * Set for station managers: the station they report for.
+   */
+  stationId           String?                 @db.Uuid
+  station             Station?                @relation(fields: [stationId], references: [id])
+  salesReports        DailySalesReport[]
   createdAt           DateTime                @default(now())
   updatedAt           DateTime                @updatedAt
 
   @@index([roleId])
   @@index([isActive])
+  @@index([stationId])
 }
 
 model Driver {
@@ -78,6 +85,12 @@ model Delivery {
   quantityLiters     Decimal                 @db.Decimal(12, 2)
   truckPlate         String
   status             DeliveryStatus          @default(CREATED)
+  /**
+   * Receiving station tank; approved deliveries add to its stock.
+   */
+  stationFuelId      String?                 @db.Uuid
+  stationFuel        StationFuel?            @relation(fields: [stationFuelId], references: [id])
+  deliveredAt        DateTime?
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
   statusHistory      DeliveryStatusHistory[]
@@ -88,6 +101,7 @@ model Delivery {
   @@index([driverUserId])
   @@index([status])
   @@index([createdAt])
+  @@index([stationFuelId, status])
 }
 
 model DeliveryLocation {
@@ -217,4 +231,68 @@ model MaintenanceAttachment {
   createdAt  DateTime          @default(now())
 
   @@index([recordId])
+}
+
+enum FuelProduct {
+  BENZINE
+  DIESEL
+  JET_A1
+  FUEL_OIL
+}
+
+model Station {
+  id        String             @id @default(uuid()) @db.Uuid
+  code      String             @unique
+  name      String             @unique
+  location  String?
+  isActive  Boolean            @default(true)
+  fuels     StationFuel[]
+  managers  User[]
+  reports   DailySalesReport[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+/// A fuel a station sells. Stock = opening stock + approved deliveries - liters sold since openingDate.
+model StationFuel {
+  id                 String      @id @default(uuid()) @db.Uuid
+  stationId          String      @db.Uuid
+  station            Station     @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  product            FuelProduct
+  capacityLiters     Decimal?    @db.Decimal(14, 2)
+  openingStockLiters Decimal     @db.Decimal(14, 2)
+  openingDate        DateTime    @db.Date
+  deliveries         Delivery[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@unique([stationId, product])
+}
+
+model DailySalesReport {
+  id            String           @id @default(uuid()) @db.Uuid
+  stationId     String           @db.Uuid
+  station       Station          @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  reportDate    DateTime         @db.Date
+  submittedById String           @db.Uuid
+  submittedBy   User             @relation(fields: [submittedById], references: [id])
+  note          String?
+  lines         DailySalesLine[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([stationId, reportDate])
+  @@index([reportDate])
+}
+
+model DailySalesLine {
+  id                  String           @id @default(uuid()) @db.Uuid
+  reportId            String           @db.Uuid
+  report              DailySalesReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  product             FuelProduct
+  litersSold          Decimal          @db.Decimal(14, 2)
+  /// Optional tank reading at close of day, compared with the calculated stock.
+  measuredStockLiters Decimal?         @db.Decimal(14, 2)
+
+  @@unique([reportId, product])
 }

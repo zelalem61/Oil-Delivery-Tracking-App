@@ -78,7 +78,7 @@ export default function Incident() {
         ...coords,
       });
       setConfirmOpen(false);
-      setResult(outcome);
+      setResult(outcome.status);
     } finally {
       setSending(false);
     }

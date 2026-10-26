@@ -7,6 +7,7 @@ import { DriversModule } from './drivers/drivers.module';
 import { DeliveriesModule } from './deliveries/deliveries.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
+import { StationsModule } from './stations/stations.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
     DeliveriesModule,
     IncidentsModule,
     MaintenanceModule,
+    StationsModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

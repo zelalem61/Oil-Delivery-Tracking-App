@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { DeliveryStatus } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
+import { fuelLabels, productFromLabel } from '../stations/fuel';
 import { CreateDeliveryDto, CreateDeliveryLocationDto } from './deliveries.dto';
 const driverTransition: Partial<Record<DeliveryStatus, DeliveryStatus>> = {
   CREATED: 'DISPATCHED',
@@ -24,6 +25,7 @@ export class DeliveriesService {
       where: { driverUserId, status: { notIn: ['DELIVERED', 'CANCELLED'] } },
     });
     if (active) throw new BadRequestException('Driver already has an active delivery');
+    const destination = await this.resolveStation(input);
     const year = new Date().getUTCFullYear();
     const count = await this.prisma.delivery.count({
       where: { createdAt: { gte: new Date(Date.UTC(year, 0, 1)) } },
@@ -34,8 +36,9 @@ export class DeliveriesService {
           deliveryNumber: `DEL-${year}-${String(count + 1).padStart(6, '0')}`,
           driverUserId,
           origin: input.origin.trim(),
-          destination: input.destination.trim(),
-          fuelProduct: input.fuelProduct.trim(),
+          destination: destination?.name ?? input.destination.trim(),
+          fuelProduct: destination?.label ?? input.fuelProduct.trim(),
+          stationFuelId: destination?.stationFuelId,
           quantityLiters: input.quantityLiters,
           truckPlate: driver.truckPlate,
         },
@@ -58,6 +61,9 @@ export class DeliveriesService {
       include: {
         driver: { select: { firstName: true, lastName: true, email: true } },
         statusHistory: { orderBy: { createdAt: 'asc' } },
+        stationFuel: {
+          select: { product: true, station: { select: { id: true, code: true, name: true } } },
+        },
         locations: { orderBy: { recordedAt: 'desc' }, take: 1 },
         _count: {
           select: { incidents: { where: { status: { in: ['OPEN', 'ACKNOWLEDGED'] } } } },
@@ -114,6 +120,22 @@ export class DeliveriesService {
       'Approved delivered by admin',
     );
   }
+  /** Matches a station delivery to the station's tank for that fuel. */
+  private async resolveStation(input: CreateDeliveryDto) {
+    if (!input.stationId) return null;
+    const station = await this.prisma.station.findUnique({
+      where: { id: input.stationId },
+      include: { fuels: { select: { id: true, product: true } } },
+    });
+    if (!station?.isActive) throw new BadRequestException('Destination station not found');
+    const product = productFromLabel(input.fuelProduct);
+    const fuel = product && station.fuels.find((row) => row.product === product);
+    if (!product || !fuel)
+      throw new BadRequestException(
+        `${station.name} takes ${station.fuels.map((row) => fuelLabels[row.product]).join(', ')} only`,
+      );
+    return { name: station.name, label: fuelLabels[product], stationFuelId: fuel.id };
+  }
   private async transition(
     id: string,
     previous: DeliveryStatus,
@@ -122,7 +144,10 @@ export class DeliveriesService {
     reason: string,
   ) {
     const row = await this.prisma.$transaction(async (tx) => {
-      const updated = await tx.delivery.update({ where: { id }, data: { status: target } });
+      const updated = await tx.delivery.update({
+        where: { id },
+        data: { status: target, deliveredAt: target === 'DELIVERED' ? new Date() : undefined },
+      });
       await tx.deliveryStatusHistory.create({
         data: {
           deliveryId: id,

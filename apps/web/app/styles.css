@@ -1802,3 +1802,397 @@ p.alert-error {
 .kpi strong {
   white-space: nowrap;
 }
+
+/* ---------- Stations & daily sales ---------- */
+.st-section {
+  margin-top: 20px;
+}
+.skeleton-card {
+  min-height: 170px;
+  background: linear-gradient(90deg, var(--surface-2), #eef2f0, var(--surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+.st-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.st-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.st-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.st-card-head strong {
+  display: block;
+  font-size: 15px;
+}
+.st-card-head small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.st-fuels {
+  display: grid;
+  gap: 12px;
+}
+.st-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.fuel-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fuel-top strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.fuel-compact .fuel-top strong {
+  font-size: 14px;
+}
+.fuel small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.fuel-low .fill {
+  background: var(--red);
+}
+.fuel-low .fuel-top strong {
+  color: var(--red);
+}
+.fuel-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+}
+.fuel-name::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--fuel, var(--brand));
+}
+.f-benzine {
+  --fuel: #e38a17;
+}
+.f-diesel {
+  --fuel: #0e7c58;
+}
+.f-jet_a1 {
+  --fuel: #7c3aed;
+}
+.f-fuel_oil {
+  --fuel: #57534e;
+}
+.st-fuel-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.st-fuel-card {
+  padding: 18px;
+}
+.st-fuel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.st-fuel-stats dt {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.st-fuel-stats dd {
+  margin: 2px 0 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.st-fuel-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.st-date {
+  gap: 4px;
+  font-size: 12px;
+}
+.st-report {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: opacity 0.15s;
+}
+.st-report.dim {
+  opacity: 0.55;
+}
+.st-report-head,
+.st-report-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+}
+.st-report-head {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.st-report-row + .st-report-row,
+.st-report-head + .st-report-row {
+  border-top: 1px solid var(--border);
+}
+.st-report-row input {
+  font-variant-numeric: tabular-nums;
+}
+.st-report > p {
+  padding: 12px 16px;
+}
+.st-note {
+  margin-top: 14px;
+}
+.st-report-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+}
+.st-report-actions > span {
+  margin-right: auto;
+}
+.st-totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.st-totals > div {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.st-totals strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.st-totals small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ledger-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ledger th {
+  padding: 9px 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ledger th.group {
+  border-left: 1px solid var(--border);
+  color: var(--text-2);
+  text-align: center;
+}
+.ledger th.group::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  background: var(--fuel);
+}
+.ledger th.sub {
+  padding-top: 0;
+  font-size: 10.5px;
+}
+.ledger td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.ledger td small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.ledger .right {
+  text-align: right;
+}
+.ledger .center {
+  text-align: center;
+}
+.ledger tr.missing td {
+  background: #fffaf2;
+}
+.ledger td.neg {
+  color: var(--red);
+  font-weight: 700;
+}
+.ledger-in {
+  color: var(--brand) !important;
+  font-weight: 600;
+}
+.ledger-var.off {
+  color: var(--red) !important;
+  font-weight: 700;
+}
+.ledger-edit {
+  margin-left: 10px;
+  font-size: 12.5px;
+}
+.st-managers {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-managers li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.st-managers li > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.st-managers small {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.staff-row {
+  grid-template-columns: 1.4fr 1fr 1.2fr 0.8fr;
+}
+.fuel-setup {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fuel-setup-head,
+.fuel-setup-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+.fuel-setup-head {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.fuel-setup-row {
+  border-top: 1px solid var(--border);
+}
+.fuel-setup-row.off {
+  opacity: 0.6;
+}
+.fuel-setup-row input[type='number'] {
+  min-width: 0;
+  padding: 8px 10px;
+}
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+label.check input {
+  width: auto;
+}
+.modal:has(.fuel-setup) {
+  width: min(680px, 100%);
+}
+@media (max-width: 720px) {
+  .st-report-head {
+    display: none;
+  }
+  .st-report-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .st-report-row .fuel-name {
+    grid-column: 1 / -1;
+  }
+  .staff-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fuel-setup-head {
+    display: none;
+  }
+  .fuel-setup-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fuel-setup-row .check {
+    grid-column: 1 / -1;
+  }
+  .st-grid {
+    grid-template-columns: 1fr;
+  }
+}

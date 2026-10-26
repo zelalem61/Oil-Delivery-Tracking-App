@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "db:generate": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:generate",
     "db:migrate": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:migrate",
-    "db:seed": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:seed"
+    "db:seed": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:seed",
+    "db:seed:demo": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:seed:demo"
   },
   "devDependencies": {
     "dotenv-cli": "^10.0.0",

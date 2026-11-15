@@ -9,6 +9,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
+    "test:testdriver": "vitest run",
     "format": "prettier --write .",
     "db:generate": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:generate",
     "db:migrate": "dotenv -e .env -- pnpm --filter @fueltrack/api prisma:migrate",
@@ -18,7 +19,9 @@
   "devDependencies": {
     "dotenv-cli": "^10.0.0",
     "prettier": "^3.6.2",
+    "testdriverai": "^7.11.0",
     "turbo": "^2.5.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^5.1.0"
   }
 }
